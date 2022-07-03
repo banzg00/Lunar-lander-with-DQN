@@ -17,7 +17,7 @@ EPSILON_DECREMENT = 0.995
 def play():
     env = gym.make('LunarLander-v2')
     agent = Agent(ALPHA, GAMMA, epsilon, EPSILON_END, EPSILON_DECREMENT, BUFFER_SIZE, BATCH_SIZE, UPDATE_EVERY)
-    agent.load_model("./models/model3/model_1100_episodes.h5")
+    agent.load_model("./models/model3/model_1230_episodes.h5")
     scores = []
     np.random.seed(0)
     for ep in range(1, EPISODES + 1):

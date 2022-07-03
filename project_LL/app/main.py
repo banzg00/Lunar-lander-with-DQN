@@ -23,10 +23,10 @@ def write_score(score):
 def main():
     env = gym.make('LunarLander-v2')
     agent = Agent(ALPHA, GAMMA, epsilon, EPSILON_END, EPSILON_DECREMENT, BUFFER_SIZE, BATCH_SIZE, UPDATE_EVERY)
-    agent.load_model("./models/model3/model_1000_episodes.h5")
+    agent.load_model("./models/model3/model_1230_episodes.h5")
     scores = []
     np.random.seed(0)
-    for ep in range(1001, EPISODES + 1):
+    for ep in range(1231, EPISODES + 1):
         score = 0
         state = env.reset()
         start = time.time()
@@ -43,9 +43,9 @@ def main():
         scores.append(score)
         end = time.time()
         print(f"****************\n\nEpisode {ep}   -   {str(end-start)} - ({score})\n\n***************")
-        if ep % 100 == 0:
-            print(f"Episode: {ep}  -  Average score: {np.mean(scores[-100:])}")
-            write_score(np.mean(scores[-100:]))
+        if ep % 10 == 0:
+            print(f"Episode: {ep}  -  Average score: {np.mean(scores[-10:])}")
+            write_score(np.mean(scores[-10:]))
             agent.save_model("./models/model3/model_" + str(ep) + "_episodes.h5")
 
 
