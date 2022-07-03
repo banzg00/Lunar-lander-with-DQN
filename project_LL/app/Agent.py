@@ -8,6 +8,9 @@ import random
 
 from keras.saving.save import load_model
 
+UPDATE_TARGET_EVERY = 5
+TAU = 0.001
+
 
 class Agent:
 
@@ -27,13 +30,15 @@ class Agent:
         self.update_every = update_every
         self.update_cnt = 0
 
+        self.update_target_model_cnt = 0
+
     def step(self, state, action, reward, next_state, done):
         self._update_replay_memory(state, action, reward, next_state, done)
         self.update_cnt += 1
         # Learn every UPDATE_EVERY time steps.
         if self.update_cnt > 0 and self.update_cnt % self.update_every == 0:
             if len(self.memory) > self.batch_size:
-                self.learn()
+                self.learn(done)
 
     def choose_action(self, state):
         state = np.reshape(state, (1, 8))
@@ -46,7 +51,7 @@ class Agent:
 
         return action
 
-    def learn(self):
+    def learn(self, terminal_state):
         states, actions, rewards, next_states, done_s = self.memory.get_sample()
 
         current_qs_list = self.model.predict(states)
@@ -56,13 +61,25 @@ class Agent:
         for index, (state, action, reward, next_state, done) in enumerate(
                 zip(states, actions, rewards, next_states, done_s)):
             max_next_q = np.max(next_qs_list[index])
-            next_q = reward + self.gamma * max_next_q * (1 - done)
+            new_q = reward + self.gamma * max_next_q * (1 - done)
 
             current_qs = current_qs_list[index]
-            current_qs[action] = next_q
+            current_qs[action] = new_q
             y.append(current_qs)
 
         self.model.fit(states, np.array(y), verbose=0, shuffle=False, batch_size=self.batch_size)
+
+        # if terminal_state:
+        #     self.update_target_model_cnt += 1
+        #
+        # if self.update_target_model_cnt >= UPDATE_TARGET_EVERY:
+        #     self.target_model.set_weights(self.model.weights)
+        #     self.update_target_model_cnt = 0
+
+        # θ_target = τ*θ_local + (1 - τ)*θ_target
+        t_local = np.array(self.model.weights, dtype=object)
+        t_target = np.array(self.target_model.weights, dtype=object)
+        self.target_model.set_weights(TAU * t_local + (1 - TAU) * t_target)
 
         if self.epsilon > self.min_epsilon:
             self.epsilon *= self.epsilon_dec
@@ -72,6 +89,7 @@ class Agent:
 
     def load_model(self, file_path):
         self.model = load_model(file_path)
+        self.target_model.set_weights(self.model.weights)
 
     def _update_replay_memory(self, state, action, reward, next_state, done):
         self.memory.save_new_experience(state, action, reward, next_state, done)
