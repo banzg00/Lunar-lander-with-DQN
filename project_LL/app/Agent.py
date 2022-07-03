@@ -8,7 +8,7 @@ import random
 
 from keras.saving.save import load_model
 
-UPDATE_TARGET_EVERY = 5
+# UPDATE_TARGET_EVERY = 5
 TAU = 0.001
 
 
@@ -38,7 +38,7 @@ class Agent:
         # Learn every UPDATE_EVERY time steps.
         if self.update_cnt > 0 and self.update_cnt % self.update_every == 0:
             if len(self.memory) > self.batch_size:
-                self.learn(done)
+                self.learn()
 
     def choose_action(self, state):
         state = np.reshape(state, (1, 8))
@@ -51,7 +51,7 @@ class Agent:
 
         return action
 
-    def learn(self, terminal_state):
+    def learn(self):
         states, actions, rewards, next_states, done_s = self.memory.get_sample()
 
         current_qs_list = self.model.predict(states)
